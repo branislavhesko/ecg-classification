@@ -19,8 +19,8 @@ class EcgLoader(data.Dataset):
     def __getitem__(self, item):
         signal = self.annotations[item, :-1]
         label = int(self.annotations[item, -1])
-
-        return torch.from_numpy(signal).float(), torch.tensor([label]).long()
+        # TODO: add augmentations
+        return torch.from_numpy(signal).float().unsqueeze(0), torch.tensor(label).long()
 
 
 def get_data_loaders(config: DatasetConfig):

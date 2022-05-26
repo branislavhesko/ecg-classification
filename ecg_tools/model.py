@@ -7,7 +7,7 @@ import torch.nn as nn
 
 
 class LinearEmbedding(nn.Sequential):
-    
+
     def __init__(self, input_channels, output_channels) -> None:
         super().__init__(*[
             nn.Linear(input_channels, output_channels),
@@ -15,12 +15,12 @@ class LinearEmbedding(nn.Sequential):
             nn.GELU()
         ])
         self.cls_token = nn.Parameter(torch.randn(1, output_channels))
-        
+
     def forward(self, x):
         embedded = super().forward(x)
         return torch.cat([einops.repeat(self.cls_token, "n e -> b n e", b=x.shape[0]), embedded], dim=1)
-    
-    
+
+
 class MLP(nn.Sequential):
     def __init__(self, input_channels, expansion=4):
         super().__init__(*[
@@ -28,7 +28,7 @@ class MLP(nn.Sequential):
             nn.GELU(),
             nn.Linear(input_channels * expansion, input_channels)
         ])
-        
+
 
 class ResidualAdd(torch.nn.Module):
     def __init__(self, block):
@@ -63,7 +63,7 @@ class MultiHeadAttention(torch.nn.Module):
         out = torch.einsum('bihv, bvhd -> bihd ', mh_out / divider, values)
         out = einops.rearrange(out, "b n h e -> b n (h e)")
         return self.final_projection(out)
-    
+
 
 class TransformerEncoderLayer(torch.nn.Sequential):
     def __init__(self, embed_size=768, expansion=4, num_heads=8):
@@ -79,8 +79,8 @@ class TransformerEncoderLayer(torch.nn.Sequential):
                 ]))
             ]
         )
-        
-    
+
+
 class Classifier(nn.Sequential):
     def __init__(self, embed_size, num_classes):
         super().__init__(*[
@@ -92,7 +92,7 @@ class Classifier(nn.Sequential):
 
 
 class ECGformer(nn.Module):
-    
+
     def __init__(self, num_layers, signal_length, num_classes, input_channels, embed_size, num_heads, expansion) -> None:
         super().__init__()
         self.encoder = nn.ModuleList([TransformerEncoderLayer(
@@ -100,15 +100,15 @@ class ECGformer(nn.Module):
         self.classifier = Classifier(embed_size, num_classes)
         self.positional_encoding = nn.Parameter(torch.randn(signal_length + 1, embed_size))
         self.embedding = LinearEmbedding(input_channels, embed_size)
-        
+
     def forward(self, x):
         embedded = self.embedding(x)
-        
+
         for layer in self.encoder:
             embedded = layer(embedded + self.positional_encoding)
-        
+
         return self.classifier(embedded)
-    
+
 
 if __name__ == "__main__":
     print(LinearEmbedding(3, 192)(torch.rand(2, 128, 3)).shape)
@@ -117,4 +117,3 @@ if __name__ == "__main__":
     print(ECGformer(
         4, 128, 5, 3, 192, 8, 4
     )(torch.rand(2, 128, 3)).shape)
-        
