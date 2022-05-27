@@ -4,6 +4,7 @@ from tqdm import tqdm
 
 from ecg_tools.config import EcgConfig, Mode
 from ecg_tools.data_loader import get_data_loaders
+from ecg_tools.metrics import Metrics
 from ecg_tools.model import ECGformer
 
 
@@ -23,6 +24,10 @@ class ECGClassifierTrainer:
         self.optimizer = torch.optim.AdamW(self.model.parameters(), lr=self.config.lr, weight_decay=1e-4)
         self.loss = torch.nn.CrossEntropyLoss()
         self.data_loader = get_data_loaders(self.config.dataset)
+        self.metrics = {
+            Mode.train: Metrics(),
+            Mode.eval: Metrics()
+        }
 
     def train(self):
 
@@ -41,8 +46,23 @@ class ECGClassifierTrainer:
             loss.backward()
             self.optimizer.step()
             accuracy += torch.sum(prediction.argmax(1) == label)
-            loader.set_description(f"Epoch: {epoch}, loss: {loss.item()}. Target: {label[:8].tolist()}, Prediction: {prediction.argmax(1)[:8].tolist()}")
-        print(f"Final Accuracy: {accuracy / len(loader) / self.config.dataset.batch_size}")
+            loader.set_description(f"TRAINING: {epoch}, loss: {loss.item()}. Target: {label[:8].tolist()}, Prediction: {prediction.argmax(1)[:8].tolist()}")
+        print(f"TRAINING Accuracy: {accuracy / len(loader) / self.config.dataset.batch_size}")
+        
+    @torch.no_grad()
+    def validate_epoch(self, epoch):
+        self.model.eval()
+
+        loader = tqdm(self.data_loader[Mode.eval])
+        
+        for index, data in enumerate(loader):
+            signal, label = [d.to(self.config.device) for d in data]
+            prediction = self.model(einops.rearrange(signal, "b c e -> b e c"))
+            loss = self.loss(prediction, label)
+            accuracy += torch.sum(prediction.argmax(1) == label)
+            loader.set_description(f"VALIDATION: {epoch}, loss: {loss.item()}. Target: {label[:8].tolist()}, Prediction: {prediction.argmax(1)[:8].tolist()}")
+        print(f"TRAINING Accuracy: {accuracy / len(loader) / self.config.dataset.batch_size}")
+            
 
 if __name__ == "__main__":
     ECGClassifierTrainer(EcgConfig()).train()
