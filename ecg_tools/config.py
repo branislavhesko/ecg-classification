@@ -38,3 +38,4 @@ class EcgConfig:
     device: Union[int, str] = "cuda"
     lr: float = 2e-4
     num_epochs: int = 5
+    validation_frequency: int = 2
