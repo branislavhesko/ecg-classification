@@ -1,5 +1,7 @@
-from turtle import update
+import cv2
 import einops
+from matplotlib import pyplot as plt
+from sklearn.metrics import ConfusionMatrixDisplay
 import torch
 from tqdm import tqdm
 
@@ -54,6 +56,7 @@ class ECGClassifierTrainer:
             loader.set_description(f"TRAINING: {epoch}, loss: {loss.item()}. Target: {label[:8].tolist()}, Prediction: {prediction.argmax(1)[:8].tolist()}")
         print(f"TRAINING Accuracy: {accuracy / len(loader) / self.config.dataset.batch_size}")
         print(self.metrics[Mode.train].confusion_matrix())
+        cv2.imwrite(f"train_{epoch}.png", self.metrics[Mode.train].confusion_matrix_image()[:, :, ::-1])
 
     @torch.no_grad()
     def validate_epoch(self, epoch):
@@ -70,6 +73,7 @@ class ECGClassifierTrainer:
             loader.set_description(f"VALIDATION: {epoch}, loss: {loss.item()}. Target: {label[:8].tolist()}, Prediction: {prediction.argmax(1)[:8].tolist()}")
         print(f"VALIDATION Accuracy: {accuracy / len(loader) / self.config.dataset.batch_size}")
         print(self.metrics[Mode.train].confusion_matrix())
+        cv2.imwrite(f"eval_{epoch}.png", self.metrics[Mode.eval].confusion_matrix_image()[:, :, ::-1])
 
 
 if __name__ == "__main__":
