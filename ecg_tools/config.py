@@ -37,5 +37,5 @@ class EcgConfig:
     model: ModelConfig = ModelConfig()
     device: Union[int, str] = "cuda"
     lr: float = 2e-4
-    num_epochs: int = 10
+    num_epochs: int = 20
     validation_frequency: int = 2
