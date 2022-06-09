@@ -13,8 +13,8 @@ class DatasetConfig:
     batch_size: int = 64
     num_workers: int = 8
     path: Dict = dataclasses.field(default_factory=lambda: {
-        Mode.train: "./data/mitbih_train.csv",
-        Mode.eval: "./data/mitbih_test.csv"
+        Mode.train: "../data/mitbih_train.csv",
+        Mode.eval: "../data/mitbih_test.csv"
     })
     transforms: Dict = dataclasses.field(default_factory=lambda: {
         Mode.train: lambda x: x, Mode.eval: lambda x: x})
