@@ -66,16 +66,18 @@ class MultiHeadAttention(torch.nn.Module):
 
 
 class TransformerEncoderLayer(torch.nn.Sequential):
-    def __init__(self, embed_size=768, expansion=4, num_heads=8):
+    def __init__(self, embed_size=768, expansion=4, num_heads=8, dropout=0.1):
         super(TransformerEncoderLayer, self).__init__(
             *[
                 ResidualAdd(nn.Sequential(*[
                     nn.LayerNorm(embed_size),
-                    MultiHeadAttention(embed_size, num_heads)
+                    MultiHeadAttention(embed_size, num_heads),
+                    nn.Dropout(dropout)
                 ])),
                 ResidualAdd(nn.Sequential(*[
                     nn.LayerNorm(embed_size),
-                    MLP(embed_size, expansion)
+                    MLP(embed_size, expansion),
+                    nn.Dropout(dropout)
                 ]))
             ]
         )

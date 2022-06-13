@@ -2,6 +2,8 @@ import dataclasses
 from enum import Enum
 from typing import Dict, Union
 
+from ecg_tools.augmentations import Compose, RandomNoise, RandomShift
+
 
 class Mode(Enum):
     train = "train"
@@ -13,11 +15,11 @@ class DatasetConfig:
     batch_size: int = 64
     num_workers: int = 8
     path: Dict = dataclasses.field(default_factory=lambda: {
-        Mode.train: "../data/mitbih_train.csv",
-        Mode.eval: "../data/mitbih_test.csv"
+        Mode.train: "./data/mitbih_train.csv",
+        Mode.eval: "./data/mitbih_test.csv"
     })
     transforms: Dict = dataclasses.field(default_factory=lambda: {
-        Mode.train: lambda x: x, Mode.eval: lambda x: x})
+        Mode.train: Compose([RandomNoise(0.05, 0.5), RandomShift(10, 0.5)]), Mode.eval: lambda x: x})
 
 
 @dataclasses.dataclass()
@@ -37,5 +39,5 @@ class EcgConfig:
     model: ModelConfig = ModelConfig()
     device: Union[int, str] = "cuda"
     lr: float = 2e-4
-    num_epochs: int = 20
+    num_epochs: int = 11
     validation_frequency: int = 2
