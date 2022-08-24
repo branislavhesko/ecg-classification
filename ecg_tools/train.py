@@ -35,16 +35,13 @@ class ECGClassifierTrainer:
         }
 
     def train(self):
-        confusion_matrix_image_train, confusion_matrix_image_eval = np.zeros((1, 1, 3)), np.zeros((1, 1, 3))
+        confusion_matrices_image_train, confusion_matrices_image_eval = [], []
         for epoch in range(self.config.num_epochs):
-            confusion_matrix_image_train = self.train_epoch(epoch)
+            confusion_matrices_image_train.append(self.train_epoch(epoch))
 
             if epoch % self.config.validation_frequency == 0:
-                confusion_matrix_image_eval = self.validate_epoch(epoch)
-        return {
-            Mode.train: confusion_matrix_image_train,
-            Mode.eval: confusion_matrix_image_eval
-        }
+                confusion_matrices_image_eval.append(self.validate_epoch(epoch))
+        return confusion_matrices_image_train, confusion_matrices_image_eval
 
     def train_epoch(self, epoch):
         self.model.train()
