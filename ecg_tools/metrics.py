@@ -43,10 +43,10 @@ class Metrics:
     def confusion_matrix(self):
         cm = confusion_matrix(self.labels, self.predictions)
         return cm
-    
+
     def confusion_matrix_image(self):
         figure = ConfusionMatrixDisplay(self.confusion_matrix()).plot().figure_
-        
+
         def get_img_from_fig(fig, dpi=180):
             buf = io.BytesIO()
             fig.savefig(buf, format="png", dpi=dpi)
@@ -57,5 +57,9 @@ class Metrics:
             img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
             return img
-    
-        return get_img_from_fig(figure)
+
+        numpy_figure = get_img_from_fig(figure)
+        plt.close()
+        plt.clf()
+        plt.cla()
+        return numpy_figure
