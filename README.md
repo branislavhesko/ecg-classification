@@ -64,15 +64,15 @@ for idx, data in enumerate(data_loaders[Mode.train]):
         break
     plt.plot(data[0][0, ...].squeeze().numpy())
     labels.append(int(data[1][0, ...].numpy()))
-    
+
 plt.legend([f"ECG: {label}" for label in labels])
 plt.show()
 ```
 
 
-    
+
 ![png](notebooks/ecg_classification_files/ecg_classification_2_0.png)
-    
+
 
 
 
@@ -92,7 +92,7 @@ plt.bar(range(len(classes)), list(labels.values()), tick_label=[f"{k}: {v}" for 
 plt.title("Class frequency for ECG classification task")
 plt.ylabel("Frequency [samples]")
 plt.xlabel("Class")
- 
+
 ```
 
 
@@ -103,9 +103,9 @@ plt.xlabel("Class")
 
 
 
-    
+
 ![png](notebooks/ecg_classification_files/ecg_classification_3_1.png)
-    
+
 
 
 ## Modeling
@@ -397,8 +397,6 @@ model
       )
     )
 
-
-
 # Training
 No special training procedure is employed to do the actual training. The following settings are used:
 - Learning rate - Determines the size of the step in the gradient direction. Too high learning rate leads to divergence, too low learning rate will slow down convergence. 0.0002 value is used for all experiments.
@@ -406,3 +404,39 @@ No special training procedure is employed to do the actual training. The followi
 - Batch size - How many samples are processed at once and used for gradient approximation. Lower values are worse approximation of the gradient of the entire dataset, but may be used as a good regularizer. This works uses 16, 32 or 64 sized batches.
 - Augmentations - Creating a populated real-world dataset is hard. Therefore, real datasets are small. Augmentations are used to artificially increase the size of the dataset by using various tricks on data, like noise, rotation, scaling etc. This work will show results under some augmentations.
 - Number of epochs - How many times is a single image passed through the network. This work is not designed to be SOTA, but rather educational, therefore 20 epochs are used.
+
+Why are these parameters important? It turns out, that for some applications, model is very sensitive to parameters, for example lower batch size may be the cause of model stagnating or higher learning rate may cause algorithm to overfit especially when the data quality is poor.
+
+Finally, this short script should train the model for the predefined number of epochs and store confusion matrices into a video. This video represents how confusion matrices are evolving in time.
+
+```python
+config = EcgConfig()
+trainer = ECGClassifierTrainer(config)
+
+train_confusion_matrix, eval_confusion_matrix = trainer.train()
+
+writer_train = cv2.VideoWriter("train.avi", cv2.VideoWriter_fourcc(*"XVID"), 1, (train_confusion_matrix[0].shape[1], train_confusion_matrix[0].shape[0]))
+writer_eval = cv2.VideoWriter("eval.avi", cv2.VideoWriter_fourcc(*"XVID"), 1, (eval_confusion_matrix[0].shape[1], eval_confusion_matrix[0].shape[0]))
+
+for cm in train_confusion_matrix:
+    writer_train.write(cm)
+
+for cm in eval_confusion_matrix:
+    writer_eval.write(cm)
+
+```
+
+A single confusion matrix should look like the following image. Training confusion matrix is on the left, validation confusion matrix is on the right.
+
+![Training results](assets/training.png)
+
+
+
+# Custom training
+Custom training is possible, user should mainly modify data loader to feed new data.
+
+  * Data loading may be modified inside *ecg_tools/data_loader.py* file.
+  * Dataset class should return Tuple of signal of shape **1 x N** and label of shape **1** from *\_\_get\_item\_\_* method.
+  * Modify *ecg_tools/config.py* to correspond to the new dataset.
+  * Run *ecg_tools/train.py*. This will train the model, make regularly evaluation and store confusion matrices in list.
+  * Training returns list of confusion matrices representing results after each epoch.
