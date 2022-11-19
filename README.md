@@ -434,8 +434,7 @@ A single confusion matrix should look like the following image. Training confusi
 ![Training results](assets/training.png)
 
 
-
-# Custom training
+# Custom training
 Custom training is possible, user should mainly modify data loader to feed new data.
 
   * Data loading may be modified inside *ecg_tools/data_loader.py* file.
