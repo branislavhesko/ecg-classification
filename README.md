@@ -123,9 +123,12 @@ class MLP(nn.Sequential):
 
 Attention is the key component of transformer models. Mathematically, it is defined as:
 
+$$
 \begin{equation}
 Attention(Q, K, V) = \frac{\textbf{softmax(}QK^T\textbf{)}V}{\sqrt{d}},
 \end{equation}
+$$
+
 where K, Q, V are keys, queries and values respectively. For self-attention, Q, K, V are identical. In general, one may imagine attention as values tensor being weighted by $QK^T$ multiplication. Thus, values are weighted by an matrix representing importance of each element. A simple pytorch implementation of self-attention layer may look like the following snippet:
 
 ```python
@@ -440,3 +443,8 @@ Custom training is possible, user should mainly modify data loader to feed new d
   * Modify *ecg_tools/config.py* to correspond to the new dataset.
   * Run *ecg_tools/train.py*. This will train the model, make regularly evaluation and store confusion matrices in list.
   * Training returns list of confusion matrices representing results after each epoch.
+
+# Conclusion
+
+To summarize, this short article has been an attempt to introduce the reader into the amazing world of deep learning. The goal was to show that training a neural network for classification may not be a complicated task.
+A simple transformer network has been presented and only minor modifications would be needed to enlarge the model into 2D image processing model or even 3D model. Transformers are useful and powerful family of models that are processing inputs as sequences. They allow to combine multiple data sources like audio + images. Isn't it fascinating?
